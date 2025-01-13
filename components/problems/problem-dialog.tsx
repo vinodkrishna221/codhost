@@ -74,29 +74,35 @@ export function ProblemDialog({ problem, isOpen, onClose }: ProblemDialogProps) 
           <TabsContent value="approach">
             <Card className="p-4 bg-black/20 border-white/10">
               <div className="space-y-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Lightbulb className="h-5 w-5 text-cyan-400" />
-                    <h3 className="text-lg font-semibold text-white">Solution Approach</h3>
+                {problem.approaches?.map((approach, index) => (
+                  <div key={index}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Lightbulb className="h-5 w-5 text-cyan-400" />
+                      <h3 className="text-lg font-semibold text-white">{approach.title}</h3>
+                    </div>
+                    <p className="text-gray-300">{approach.description}</p>
                   </div>
-                  <p className="text-gray-300">{problem.solutionApproach}</p>
-                </div>
+                ))}
 
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-5 w-5 text-cyan-400" />
-                    <h3 className="text-lg font-semibold text-white">Time Complexity</h3>
+                {problem.timeComplexity && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="h-5 w-5 text-cyan-400" />
+                      <h3 className="text-lg font-semibold text-white">Time Complexity</h3>
+                    </div>
+                    <p className="text-gray-300">{problem.timeComplexity}</p>
                   </div>
-                  <p className="text-gray-300">{problem.timeComplexity}</p>
-                </div>
+                )}
 
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <HardDrive className="h-5 w-5 text-cyan-400" />
-                    <h3 className="text-lg font-semibold text-white">Space Complexity</h3>
+                {problem.spaceComplexity && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <HardDrive className="h-5 w-5 text-cyan-400" />
+                      <h3 className="text-lg font-semibold text-white">Space Complexity</h3>
+                    </div>
+                    <p className="text-gray-300">{problem.spaceComplexity}</p>
                   </div>
-                  <p className="text-gray-300">{problem.spaceComplexity}</p>
-                </div>
+                )}
               </div>
             </Card>
           </TabsContent>
