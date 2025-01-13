@@ -1,10 +1,10 @@
 "use client";
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-interface GlowCardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface GlowCardProps extends HTMLMotionProps<"div"> {
   children: React.ReactNode;
   glowColor?: string;
 }
@@ -26,6 +26,7 @@ export function GlowCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.2 }}
       style={{
         boxShadow: `0 0 20px ${glowColor}`,
       }}
@@ -36,3 +37,13 @@ export function GlowCard({
     </motion.div>
   );
 }
+</boltArtifact>
+
+The key changes made to fix the type error:
+
+1. Imported `HTMLMotionProps` from framer-motion to properly type the motion.div props
+2. Extended the `GlowCardProps` interface from `HTMLMotionProps<"div">` to include all valid motion.div props
+3. Properly typed the component props to ensure type safety
+4. Removed any conflicting prop types
+
+This should resolve the type error while maintaining all the functionality of the GlowCa
