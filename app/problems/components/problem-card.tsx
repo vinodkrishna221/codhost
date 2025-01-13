@@ -29,7 +29,7 @@ export function ProblemCard({ problem }: ProblemCardProps) {
         </Badge>
       </div>
       <div className="flex flex-wrap gap-2 mt-2">
-        {problem.categories.map((cat, index) => (
+        {problem.category.map((cat, index) => (
           <Badge key={index} variant="outline" className="border-white/10">
             {cat}
           </Badge>
