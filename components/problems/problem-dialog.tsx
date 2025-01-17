@@ -79,7 +79,7 @@ export function ProblemDialog({ problem, isOpen, onClose }: ProblemDialogProps) 
                     <Lightbulb className="h-5 w-5 text-cyan-400" />
                     <h3 className="text-lg font-semibold text-white">Solution Approach</h3>
                   </div>
-                  <p className="text-gray-300">{problem.solutionApproach}</p>
+                  <p className="text-gray-300">{problem.solution.Approach}</p>
                 </div>
 
                 <div>
