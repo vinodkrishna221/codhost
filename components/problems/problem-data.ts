@@ -13,7 +13,13 @@ export type Problem = {
   detailedDescription: string;
   realWorldApplications: string[];
   supportedLanguages: string[];
+  solution?: {
+    Approach: string;
+    timeComplexity: string;
+    spaceComplexity: string;
+  };
 };
+
 
 export const programmingLanguages: ProgrammingLanguage[] = [
   { id: "javascript", name: "JavaScript", icon: "js" },
