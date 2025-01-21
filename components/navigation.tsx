@@ -3,15 +3,43 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ChevronLeft, Menu } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { signOut } from "@/lib/supabase/auth";
 
 export function Navigation() {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
+  const [session, setSession] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+  const supabase = createClientComponentClient();
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
 
   const showBackButton = pathname.includes("/problems/") || pathname === "/problems" || pathname === "/categories";
   const backPath = pathname.includes("/problems/") ? "/problems" : "/";
@@ -32,7 +60,7 @@ export function Navigation() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="pr-0 bg-black/90">
-              <MobileNav pathname={pathname} setOpen={setOpen} />
+              <MobileNav pathname={pathname} setOpen={setOpen} session={session} />
             </SheetContent>
           </Sheet>
           <Link href="/" className="flex items-center">
@@ -84,12 +112,49 @@ export function Navigation() {
             About
           </Link>
           <div className="flex items-center gap-2 ml-4">
-            <Button variant="ghost" asChild>
-              <Link href="/auth/signin">Sign In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/auth/signup">Sign Up</Link>
-            </Button>
+            {!session ? (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link href="/auth/signin">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/auth/signup">Sign Up</Link>
+                </Button>
+              </>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="/avatars/01.png" alt={session.user.email} />
+                      <AvatarFallback>{session.user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <div className="flex flex-col space-y-1 p-2">
+                    <p className="text-sm font-medium leading-none">{session.user.email}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {session.user.email}
+                    </p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/settings">Settings</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </nav>
       </div>
@@ -97,7 +162,7 @@ export function Navigation() {
   );
 }
 
-function MobileNav({ pathname, setOpen }: { pathname: string; setOpen: (open: boolean) => void }) {
+function MobileNav({ pathname, setOpen, session }: { pathname: string; setOpen: (open: boolean) => void; session: any }) {
   return (
     <ScrollArea className="my-4 h-[calc(100vh-8rem)] pb-10">
       <div className="flex flex-col space-y-4">
@@ -132,12 +197,34 @@ function MobileNav({ pathname, setOpen }: { pathname: string; setOpen: (open: bo
           About
         </Link>
         <div className="flex flex-col gap-2 pt-4">
-          <Button variant="ghost" asChild onClick={() => setOpen(false)}>
-            <Link href="/auth/signin">Sign In</Link>
-          </Button>
-          <Button asChild onClick={() => setOpen(false)}>
-            <Link href="/auth/signup">Sign Up</Link>
-          </Button>
+          {!session ? (
+            <>
+              <Button variant="ghost" asChild onClick={() => setOpen(false)}>
+                <Link href="/auth/signin">Sign In</Link>
+              </Button>
+              <Button asChild onClick={() => setOpen(false)}>
+                <Link href="/auth/signup">Sign Up</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" asChild onClick={() => setOpen(false)}>
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+              <Button variant="ghost" asChild onClick={() => setOpen(false)}>
+                <Link href="/dashboard/profile">Profile</Link>
+              </Button>
+              <Button variant="ghost" asChild onClick={() => setOpen(false)}>
+                <Link href="/dashboard/settings">Settings</Link>
+              </Button>
+              <Button variant="ghost" onClick={() => {
+                signOut();
+                setOpen(false);
+              }}>
+                Log out
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </ScrollArea>

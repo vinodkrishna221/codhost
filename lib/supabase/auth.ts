@@ -1,6 +1,49 @@
 import { supabase, checkRateLimit } from './client';
 import { AuthError } from './types';
 
+const initializeUserData = async (userId: string, email: string) => {
+  try {
+    // Insert initial user stats if not exists
+    const { error: statsError } = await supabase
+      .from('user_stats')
+      .upsert({
+        user_id: userId,
+        problems_solved: 0,
+        current_streak: 0,
+        achievement_points: 0
+      });
+
+    if (statsError) throw statsError;
+
+    // Insert initial user activity
+    const { error: activityError } = await supabase
+      .from('user_activities')
+      .insert({
+        user_id: userId,
+        problem_title: 'Welcome',
+        action: 'Joined',
+        difficulty: 'Easy'
+      });
+
+    if (activityError) throw activityError;
+
+    // Create profile if not exists
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        username: email.split('@')[0],
+        full_name: null,
+        avatar_url: null
+      });
+
+    if (profileError) throw profileError;
+
+  } catch (error) {
+    console.error('Error initializing user data:', error);
+  }
+};
+
 export const signUp = async (email: string, password: string) => {
   try {
     if (checkRateLimit(email)) {
@@ -16,6 +59,12 @@ export const signUp = async (email: string, password: string) => {
     });
 
     if (error) throw error;
+
+    // Initialize user data after successful signup
+    if (data.user) {
+      await initializeUserData(data.user.id, email);
+    }
+
     return { data, error: null };
   } catch (error) {
     return { data: null, error: error as AuthError };
@@ -34,6 +83,12 @@ export const signIn = async (email: string, password: string) => {
     });
 
     if (error) throw error;
+
+    // Initialize user data after successful signin (in case it doesn't exist)
+    if (data.user) {
+      await initializeUserData(data.user.id, email);
+    }
+
     return { data, error: null };
   } catch (error) {
     return { data: null, error: error as AuthError };
@@ -77,6 +132,12 @@ export const signInWithProvider = async (provider: 'google' | 'facebook') => {
     });
 
     if (error) throw error;
+
+    // Initialize user data after successful OAuth signin
+    if (data.user) {
+      await initializeUserData(data.user.id, data.user.email || '');
+    }
+
     return { data, error: null };
   } catch (error) {
     return { data: null, error: error as AuthError };
