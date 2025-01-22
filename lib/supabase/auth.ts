@@ -1,44 +1,11 @@
-import { supabase, checkRateLimit } from './client';
-import { AuthError } from './types';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { AuthError, Profile, UserStats } from './types';
 
-const initializeUserData = async (userId: string, email: string) => {
+const supabase = createClientComponentClient();
+
+export async function signUp(email: string, password: string, username: string) {
   try {
-    // Create profile if not exists
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert({
-        id: userId,
-        username: email.split('@')[0],
-        full_name: null,
-        avatar_url: null
-      });
-
-    if (profileError) throw profileError;
-
-    // Insert initial user activity
-    const { error: activityError } = await supabase
-      .from('user_activities')
-      .insert({
-        user_id: userId,
-        problem_title: 'Welcome',
-        action: 'Joined',
-        difficulty: 'Easy'
-      });
-
-    if (activityError) throw activityError;
-
-  } catch (error) {
-    console.error('Error initializing user data:', error);
-  }
-};
-
-export const signUp = async (email: string, password: string) => {
-  try {
-    if (checkRateLimit(email)) {
-      throw new Error('Too many attempts. Please try again later.');
-    }
-
-    const { data, error } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -46,71 +13,51 @@ export const signUp = async (email: string, password: string) => {
       },
     });
 
-    if (error) throw error;
+    if (authError) throw authError;
 
-    // Initialize user data after successful signup
-    if (data.user) {
-      await initializeUserData(data.user.id, email);
+    if (authData.user) {
+      // Create user profile
+      const { error: profileError } = await supabase
+        .from('users_table')
+        .insert({
+          id: authData.user.id,
+          email: authData.user.email,
+          username,
+        });
+
+      if (profileError) throw profileError;
+
+      // Initialize user stats
+      const { error: statsError } = await supabase
+        .from('user_stats')
+        .insert({
+          user_id: authData.user.id,
+        });
+
+      if (statsError) throw statsError;
     }
 
-    return { data, error: null };
+    return { data: authData, error: null };
   } catch (error) {
     return { data: null, error: error as AuthError };
   }
-};
+}
 
-export const signIn = async (email: string, password: string) => {
+export async function signIn(email: string, password: string) {
   try {
-    if (checkRateLimit(email)) {
-      throw new Error('Too many attempts. Please try again later.');
-    }
-
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) throw error;
-
-    // Initialize user data after successful signin (in case it doesn't exist)
-    if (data.user) {
-      await initializeUserData(data.user.id, email);
-    }
-
     return { data, error: null };
   } catch (error) {
     return { data: null, error: error as AuthError };
   }
-};
+}
 
-export const resetPassword = async (email: string) => {
-  try {
-    if (checkRateLimit(email)) {
-      throw new Error('Too many attempts. Please try again later.');
-    }
-
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    });
-
-    if (error) throw error;
-    return { data, error: null };
-  } catch (error) {
-    return { data: null, error: error as AuthError };
-  }
-};
-
-export const signOut = async () => {
-  try {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    return { error: null };
-  } catch (error) {
-    return { error: error as AuthError };
-  }
-};
-
-export const signInWithProvider = async (provider: 'google' | 'facebook') => {
+export async function signInWithProvider(provider: 'google' | 'github') {
   try {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -120,11 +67,73 @@ export const signInWithProvider = async (provider: 'google' | 'facebook') => {
     });
 
     if (error) throw error;
-
-    // For OAuth sign-ins, we'll initialize user data after the redirect callback
-    // since we don't have immediate access to the user data here
     return { data, error: null };
   } catch (error) {
     return { data: null, error: error as AuthError };
   }
-};
+}
+
+export async function signOut() {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    return { error: error as AuthError };
+  }
+}
+
+export async function getProfile(): Promise<{ data: Profile | null; error: AuthError | null }> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return { data: null, error: null };
+
+    const { data, error } = await supabase
+      .from('users_table')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error as AuthError };
+  }
+}
+
+export async function getUserStats(): Promise<{ data: UserStats | null; error: AuthError | null }> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return { data: null, error: null };
+
+    const { data, error } = await supabase
+      .from('user_stats')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error as AuthError };
+  }
+}
+
+export async function updateProfile(profile: Partial<Profile>) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('No session');
+
+    const { data, error } = await supabase
+      .from('users_table')
+      .update(profile)
+      .eq('id', session.user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error as AuthError };
+  }
+}
