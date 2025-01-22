@@ -121,11 +121,8 @@ export const signInWithProvider = async (provider: 'google' | 'facebook') => {
 
     if (error) throw error;
 
-    // Initialize user data after successful OAuth signin
-    if (data.user) {
-      await initializeUserData(data.user.id, data.user.email || '');
-    }
-
+    // For OAuth sign-ins, we'll initialize user data after the redirect callback
+    // since we don't have immediate access to the user data here
     return { data, error: null };
   } catch (error) {
     return { data: null, error: error as AuthError };
