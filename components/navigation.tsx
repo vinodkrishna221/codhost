@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ChevronLeft, Menu } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,15 +102,6 @@ export function Navigation() {
           >
             Categories
           </Link>
-          <Link
-            href="/about"
-            className={cn(
-              "text-sm font-medium transition-colors hover:text-cyan-400",
-              pathname === "/about" ? "text-cyan-400" : "text-white/60"
-            )}
-          >
-            About
-          </Link>
           <div className="flex items-center gap-2 ml-4">
             {!session ? (
               <>
@@ -126,7 +117,6 @@ export function Navigation() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/avatars/01.png" alt={session.user.email} />
                       <AvatarFallback>{session.user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </Button>
@@ -134,9 +124,6 @@ export function Navigation() {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <div className="flex flex-col space-y-1 p-2">
                     <p className="text-sm font-medium leading-none">{session.user.email}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {session.user.email}
-                    </p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
@@ -144,9 +131,6 @@ export function Navigation() {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings">Settings</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => signOut()}>
@@ -186,16 +170,6 @@ function MobileNav({ pathname, setOpen, session }: { pathname: string; setOpen: 
         >
           Categories
         </Link>
-        <Link
-          href="/about"
-          className={cn(
-            "px-2 py-1 text-lg transition-colors hover:text-cyan-400",
-            pathname === "/about" ? "text-cyan-400" : "text-white/60"
-          )}
-          onClick={() => setOpen(false)}
-        >
-          About
-        </Link>
         <div className="flex flex-col gap-2 pt-4">
           {!session ? (
             <>
@@ -213,9 +187,6 @@ function MobileNav({ pathname, setOpen, session }: { pathname: string; setOpen: 
               </Button>
               <Button variant="ghost" asChild onClick={() => setOpen(false)}>
                 <Link href="/dashboard/profile">Profile</Link>
-              </Button>
-              <Button variant="ghost" asChild onClick={() => setOpen(false)}>
-                <Link href="/dashboard/settings">Settings</Link>
               </Button>
               <Button variant="ghost" onClick={() => {
                 signOut();
