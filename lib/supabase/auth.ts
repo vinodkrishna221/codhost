@@ -3,17 +3,17 @@ import { AuthError } from './types';
 
 const initializeUserData = async (userId: string, email: string) => {
   try {
-    // Insert initial user stats if not exists
-    const { error: statsError } = await supabase
-      .from('user_stats')
+    // Create profile if not exists
+    const { error: profileError } = await supabase
+      .from('profiles')
       .upsert({
-        user_id: userId,
-        problems_solved: 0,
-        current_streak: 0,
-        achievement_points: 0
+        id: userId,
+        username: email.split('@')[0],
+        full_name: null,
+        avatar_url: null
       });
 
-    if (statsError) throw statsError;
+    if (profileError) throw profileError;
 
     // Insert initial user activity
     const { error: activityError } = await supabase
@@ -26,18 +26,6 @@ const initializeUserData = async (userId: string, email: string) => {
       });
 
     if (activityError) throw activityError;
-
-    // Create profile if not exists
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert({
-        id: userId,
-        username: email.split('@')[0],
-        full_name: null,
-        avatar_url: null
-      });
-
-    if (profileError) throw profileError;
 
   } catch (error) {
     console.error('Error initializing user data:', error);

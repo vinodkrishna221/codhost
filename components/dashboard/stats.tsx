@@ -9,22 +9,35 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 export function DashboardStats() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     async function loadStats() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setError("No session found");
+          setLoading(false);
+          return;
+        }
 
-      const { data } = await getDashboardStats(session.user.id);
-      if (data) {
-        setStats(data);
+        const { data, error } = await getDashboardStats(session.user.id);
+        if (error) {
+          setError(error.message);
+        } else {
+          setStats(data);
+        }
+      } catch (err) {
+        console.error('Error loading stats:', err);
+        setError('Failed to load stats');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
 
     loadStats();
-  }, []);
+  }, [supabase.auth]);
 
   if (loading) {
     return (
@@ -41,6 +54,15 @@ export function DashboardStats() {
             </div>
           ))}
         </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-6 bg-black/20 backdrop-blur-xl border border-white/10">
+        <h2 className="text-xl font-bold mb-4">Your Stats</h2>
+        <p className="text-red-400">Error loading stats: {error}</p>
       </Card>
     );
   }

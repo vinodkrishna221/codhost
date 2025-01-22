@@ -11,9 +11,26 @@ export async function getDashboardStats(userId: string) {
       .eq('user_id', userId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching stats:', error);
+      return { data: null, error };
+    }
+
+    // If no stats found, return default values
+    if (!stats) {
+      return {
+        data: {
+          problems_solved: 0,
+          current_streak: 0,
+          achievement_points: 0
+        },
+        error: null
+      };
+    }
+
     return { data: stats, error: null };
   } catch (error) {
+    console.error('Error in getDashboardStats:', error);
     return { data: null, error };
   }
 }
@@ -30,6 +47,7 @@ export async function getDashboardActivity(userId: string) {
     if (error) throw error;
     return { data: activities, error: null };
   } catch (error) {
+    console.error('Error in getDashboardActivity:', error);
     return { data: null, error };
   }
 }
@@ -46,6 +64,7 @@ export async function getRecommendedProblems(userId: string) {
     if (error) throw error;
     return { data: problems, error: null };
   } catch (error) {
+    console.error('Error in getRecommendedProblems:', error);
     return { data: null, error };
   }
 }
