@@ -1,5 +1,6 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from './database.types';
+import { PostgrestError } from '@supabase/supabase-js';
 
 const supabase = createClientComponentClient<Database>();
 
@@ -31,7 +32,7 @@ export async function getDashboardStats(userId: string) {
     return { data: stats, error: null };
   } catch (error) {
     console.error('Error in getDashboardStats:', error);
-    return { data: null, error };
+    return { data: null, error: error as PostgrestError };
   }
 }
 
@@ -48,7 +49,7 @@ export async function getDashboardActivity(userId: string) {
     return { data: activities, error: null };
   } catch (error) {
     console.error('Error in getDashboardActivity:', error);
-    return { data: null, error };
+    return { data: null, error: error as PostgrestError };
   }
 }
 
@@ -65,6 +66,6 @@ export async function getRecommendedProblems(userId: string) {
     return { data: problems, error: null };
   } catch (error) {
     console.error('Error in getRecommendedProblems:', error);
-    return { data: null, error };
+    return { data: null, error: error as PostgrestError };
   }
 }

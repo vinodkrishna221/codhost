@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Code, Star, Trophy } from "lucide-react";
 import { getDashboardStats } from '@/lib/supabase/dashboard';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { PostgrestError } from '@supabase/supabase-js';
 
 export function DashboardStats() {
   const [stats, setStats] = useState<any>(null);
@@ -15,29 +16,33 @@ export function DashboardStats() {
   useEffect(() => {
     async function loadStats() {
       try {
+        // Get the current session
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
+        
+        if (!session?.user) {
           setError("No session found");
           setLoading(false);
           return;
         }
 
-        const { data, error } = await getDashboardStats(session.user.id);
-        if (error) {
-          setError(error.message);
+        const { data, error: statsError } = await getDashboardStats(session.user.id);
+        
+        if (statsError) {
+          setError((statsError as PostgrestError).message);
         } else {
           setStats(data);
+          setError(null);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error loading stats:', err);
-        setError('Failed to load stats');
+        setError(err.message || 'An error occurred while loading stats');
       } finally {
         setLoading(false);
       }
     }
 
     loadStats();
-  }, [supabase.auth]);
+  }, []);
 
   if (loading) {
     return (
@@ -58,15 +63,6 @@ export function DashboardStats() {
     );
   }
 
-  if (error) {
-    return (
-      <Card className="p-6 bg-black/20 backdrop-blur-xl border border-white/10">
-        <h2 className="text-xl font-bold mb-4">Your Stats</h2>
-        <p className="text-red-400">Error loading stats: {error}</p>
-      </Card>
-    );
-  }
-
   const statItems = [
     { label: "Problems Solved", value: stats?.problems_solved || "0", icon: Code },
     { label: "Current Streak", value: `${stats?.current_streak || "0"} days`, icon: Star },
@@ -76,19 +72,23 @@ export function DashboardStats() {
   return (
     <Card className="p-6 bg-black/20 backdrop-blur-xl border border-white/10">
       <h2 className="text-xl font-bold mb-4">Your Stats</h2>
-      <div className="grid gap-4">
-        {statItems.map((stat, index) => (
-          <div key={index} className="flex items-center gap-4">
-            <div className="p-2 rounded-lg bg-cyan-500/10">
-              <stat.icon className="w-5 h-5 text-cyan-400" />
+      {error ? (
+        <p className="text-red-400">Error loading stats: {error}</p>
+      ) : (
+        <div className="grid gap-4">
+          {statItems.map((stat, index) => (
+            <div key={index} className="flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-cyan-500/10">
+                <stat.icon className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">{stat.label}</p>
+                <p className="text-lg font-bold">{stat.value}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-400">{stat.label}</p>
-              <p className="text-lg font-bold">{stat.value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </Card>
   );
 }
