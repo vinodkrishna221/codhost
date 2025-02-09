@@ -3,11 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { signInWithProvider } from "@/lib/supabase/auth";
 import { useToast } from "@/hooks/use-toast";
+import { Github } from "lucide-react";
 
 export function SocialAuth() {
   const { toast } = useToast();
 
-  const handleSocialSignIn = async (provider: 'google' | 'facebook') => {
+  const handleSocialSignIn = async (provider: 'google' | 'github') => {
     try {
       const { error } = await signInWithProvider(provider);
       if (error) throw error;
@@ -31,10 +32,11 @@ export function SocialAuth() {
       </Button>
       <Button
         variant="outline"
-        onClick={() => handleSocialSignIn('facebook')}
+        onClick={() => handleSocialSignIn('github')}
         className="w-full"
       >
-        Facebook
+        <Github className="mr-2 h-4 w-4" />
+        GitHub
       </Button>
     </div>
   );

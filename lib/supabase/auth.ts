@@ -20,42 +20,36 @@ export async function signUp(email: string, password: string) {
       // 2. Create user profile in users_table
       const { error: profileError } = await supabase
         .from('users_table')
-        .insert({
+        .insert([{
           id: authData.user.id,
           email: authData.user.email,
           created_at: new Date().toISOString(),
-        });
+        }]);
 
       if (profileError) throw profileError;
 
-      // 3. Initialize user stats
+      // 3. Initialize user stats - FIXED: Added explicit id field
       const { error: statsError } = await supabase
         .from('user_stats')
-        .insert({
+        .insert([{
+          id: authData.user.id, // Add this line
           user_id: authData.user.id,
           problems_solved: 0,
           achievement_points: 0,
-          last_updated: new Date().toISOString(),
-        });
+          current_streak: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }]);
 
-      if (statsError) throw statsError;
-
-      // 4. Verify data creation
-      const { data: verifyData, error: verifyError } = await supabase
-        .from('users_table')
-        .select(`
-          *,
-          user_stats (*)
-        `)
-        .eq('id', authData.user.id)
-        .single();
-
-      if (verifyError || !verifyData) {
-        throw new Error('Failed to verify user data creation');
+      if (statsError) {
+        console.error('Stats creation error:', statsError);
+        throw statsError;
       }
+
+      return { data: authData, error: null };
     }
 
-    return { data: authData, error: null };
+    return { data: null, error: new Error('User creation failed') };
   } catch (error) {
     console.error('SignUp error:', error);
     return { data: null, error: error as AuthError };
@@ -100,37 +94,63 @@ async function createMissingUserData(userId: string, email: string) {
     // Check and create users_table record if missing
     const { data: existingUser } = await supabase
       .from('users_table')
-      .select()
+      .select('*')
       .eq('id', userId)
       .single();
 
     if (!existingUser) {
-      await supabase
+      const { error: userError } = await supabase
         .from('users_table')
-        .insert({
+        .insert([{
           id: userId,
           email: email,
           created_at: new Date().toISOString(),
-        });
+        }]);
+
+      if (userError) throw userError;
     }
 
     // Check and create user_stats record if missing
     const { data: existingStats } = await supabase
       .from('user_stats')
-      .select()
+      .select('*')
       .eq('user_id', userId)
       .single();
 
     if (!existingStats) {
-      await supabase
+      const { error: statsError } = await supabase
         .from('user_stats')
-        .insert({
+        .insert([{
+          id: userId, // Add this line
           user_id: userId,
           problems_solved: 0,
           achievement_points: 0,
-          last_updated: new Date().toISOString(),
-        });
+          current_streak: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }]);
+
+      if (statsError) {
+        console.error('Stats creation error:', statsError);
+        throw statsError;
+      }
     }
+
+    // Verify data creation
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('users_table')
+      .select(`
+        *,
+        user_stats (*)
+      `)
+      .eq('id', userId)
+      .single();
+
+    if (verifyError || !verifyData) {
+      throw new Error('Failed to verify user data creation');
+    }
+
+    return verifyData;
   } catch (error) {
     console.error('Error creating missing user data:', error);
     throw error;
