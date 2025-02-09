@@ -1,6 +1,82 @@
-a different set of coding questions to practice, this website name is "codost".
+Website Specification: Codost - Logical and Problem-Solving Practice Platform
 
-website functions:
--description of qustions.
--applications of those questions.
--in the dashboard user can view thier data, recent viewed problemetc.
+1. Project Overview & Goals:
+
+Website Name: Codost
+Core Purpose: To provide a unique online platform for users to enhance their logical reasoning and problem-solving skills through a curated collection of coding questions that specifically avoid traditional Data Structures and Algorithms (DSA) problems.
+Target Audience: Individuals looking to improve their analytical thinking, logical deduction, and problem-solving abilities. This could include:
+Students learning to code or in fields requiring strong analytical skills.
+Professionals in various domains seeking to sharpen their problem-solving aptitude.
+Individuals interested in puzzles, logic games, and brain teasers but within a coding context.
+Key Focus: Leveling up users' foundational logical and problem-solving skills, rather than preparing them for specific DSA-focused coding interviews.
+Unique Selling Proposition (USP): Codost differentiates itself by explicitly excluding DSA questions and focusing on a distinct set of coding problems designed to foster broader logical thinking.
+2. Website Functionality & Features:
+
+2.1. Question Section:
+
+Question Type:  Codost will feature a unique set of coding questions that are not DSA-based. These questions will emphasize:
+
+Logical Deduction: Problems requiring users to analyze information, identify patterns, and deduce solutions based on given constraints and rules.
+Mathematical Reasoning: Questions involving mathematical concepts, number theory, and quantitative problem-solving within a coding context.
+Scenario-Based Logic: Problems presented as real-world scenarios or puzzles that require users to apply logical thinking to arrive at a coded solution.
+Algorithmic Thinking (without DSA): Encouraging the development of step-by-step problem-solving approaches and algorithmic thinking, but without relying on standard data structures and algorithms like trees, graphs, sorting algorithms, etc., commonly found in DSA.
+Examples of potential question themes (to further clarify to the developer):
+Logic puzzles implemented in code (e.g., Sudoku solvers, logic grid puzzles).
+Mathematical puzzles and games coded (e.g., Nim, number sequence problems).
+Rule-based systems and simulations (e.g., implementing game rules, constraint satisfaction problems).
+Problems requiring pattern recognition and sequence generation.
+Questions focusing on efficient code writing without complex data structures (e.g., optimized loops, conditional logic, basic array/string manipulations).
+Question Details Page: Each question page will include:
+
+Clear Question Description: A concise and unambiguous explanation of the problem to be solved.
+"Applications" or "Why This Question Type Matters" Section:
+Explanation of the underlying logical principles being tested by the question.
+Real-world applications of the type of logical thinking and problem-solving skills required for the question. This section will highlight the broader relevance of these skills beyond just coding, such as in decision-making, analysis, and everyday problem-solving. For example:
+For a logic puzzle question: "These types of problems help in developing deductive reasoning, crucial for debugging complex systems or analyzing data."
+For a mathematical reasoning question: "Mathematical thinking is fundamental in computer science and many other fields. This problem type improves your quantitative analysis skills."
+Interactive Coding Environment (Code Editor): A user-friendly code editor directly on the webpage where users can write and test their code.
+Test Cases: Pre-defined test cases that users can run against their code to verify its correctness. Potentially with:
+Basic Test Cases (Visible): Initial, simpler test cases to guide users.
+Hidden Test Cases (For Final Submission): More comprehensive and edge-case test cases to ensure robust solutions.
+"Hint" System (Optional, but good to consider): A progressive hint system that offers guidance without giving away the solution directly. Hints could be revealed step-by-step if the user is stuck.
+"Solution" Section (Available after attempt or submission - configurable): A well-explained solution to the question, showcasing an efficient and logical approach. This should not just be code but also explain the thought process behind it.
+Discussion Forum (Optional but highly beneficial): A section for users to discuss the question, their approaches, and ask for help from the community and potentially moderators/website owners.
+2.2. User Dashboard:
+
+Personalized Overview: Upon logging in, the user dashboard should provide a quick overview of their activity and progress.
+Key Dashboard Elements:
+User Profile Summary: Display username, join date, and potentially a profile picture (if user profile customization is desired).
+Progress Tracking:
+Questions Attempted: Number of questions the user has started.
+Questions Solved/Completed: Number of questions the user has successfully solved (passed all test cases).
+Accuracy Rate (Optional): Percentage of questions solved correctly out of those attempted.
+Recently Viewed Problems: A list of the most recent questions the user has accessed or attempted, for easy navigation back to them.
+Bookmarked/Saved Questions (Optional but highly valuable): A feature for users to save questions they want to revisit or work on later.
+Performance Charts/Graphs (Optional but enhances user engagement): Visual representations of their progress over time, potentially showing questions solved per week, accuracy trends, etc.
+Achievements/Badges (Optional - Gamification element): Consider incorporating a system of achievements or badges for completing sets of questions, reaching milestones, or demonstrating consistent performance. This can increase user motivation.
+3. Technical Considerations (For the Full-Stack Developer - to be further discussed and specified):
+
+Technology Stack (To be decided - examples):
+Frontend: React, Vue.js, or similar JavaScript framework for a dynamic and interactive user interface. HTML, CSS, JavaScript.
+Backend: Node.js, Python (Django/Flask), Ruby on Rails, or similar for server-side logic and API development.
+Database: PostgreSQL, MySQL, MongoDB, or similar for storing user data, questions, solutions, and website content.
+Code Editor Integration: Need to integrate a suitable online code editor component (e.g., CodeMirror, Monaco Editor) that supports syntax highlighting, code execution (likely server-side execution for security and resource management), and test case integration.
+User Authentication and Authorization: Secure user registration, login, and session management.
+Responsiveness: The website should be fully responsive and accessible on various devices (desktops, tablets, and mobile phones).
+Scalability: Consider potential future growth and design the architecture to be scalable to handle increasing numbers of users and questions.
+Performance: Website should be fast and efficient, with quick loading times for question pages and code execution.
+Security: Implement security best practices to protect user data and prevent vulnerabilities.
+4.  Design and User Experience (UX) Considerations:
+
+Clean and Intuitive Design: The website should have a clean, uncluttered, and easy-to-navigate design. Focus on readability and a positive user experience.
+Engaging and Motivating Interface: Consider using design elements and features that encourage users to practice regularly and stay engaged (e.g., progress visualization, optional gamification).
+Clear Information Architecture: Information should be well-organized and easy to find. Questions should be categorized or tagged appropriately (even if the categories are implicit based on problem type).
+Mobile-First Approach (Recommended) or at least Responsive Design: Ensure a good user experience on mobile devices.
+5.  Future Features (Optional - for roadmap consideration):
+
+Question Difficulty Levels: Implement a system to categorize questions by difficulty (e.g., Beginner, Intermediate, Advanced).
+Categorization/Tagging of Questions: Allow users to filter or search for questions based on specific logic types or themes.
+Personalized Question Recommendations: Based on user performance, recommend questions of appropriate difficulty or type.
+Contests/Challenges: Introduce timed coding contests or themed challenges to add a competitive element.
+User Profiles and Community Features: Expand user profiles, add social features like following other users, leaderboards (if desired).
+More Detailed Analytics: Provide users with more granular insights into their performance, strengths, and weaknesses.

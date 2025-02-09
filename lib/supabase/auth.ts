@@ -5,6 +5,7 @@ const supabase = createClientComponentClient();
 
 export async function signUp(email: string, password: string) {
   try {
+    // 1. Create auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -16,28 +17,47 @@ export async function signUp(email: string, password: string) {
     if (authError) throw authError;
 
     if (authData.user) {
-      // Create user profile
+      // 2. Create user profile in users_table
       const { error: profileError } = await supabase
         .from('users_table')
         .insert({
           id: authData.user.id,
           email: authData.user.email,
+          created_at: new Date().toISOString(),
         });
 
       if (profileError) throw profileError;
 
-      // Initialize user stats
+      // 3. Initialize user stats
       const { error: statsError } = await supabase
         .from('user_stats')
         .insert({
           user_id: authData.user.id,
+          problems_solved: 0,
+          achievement_points: 0,
+          last_updated: new Date().toISOString(),
         });
 
       if (statsError) throw statsError;
+
+      // 4. Verify data creation
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('users_table')
+        .select(`
+          *,
+          user_stats (*)
+        `)
+        .eq('id', authData.user.id)
+        .single();
+
+      if (verifyError || !verifyData) {
+        throw new Error('Failed to verify user data creation');
+      }
     }
 
     return { data: authData, error: null };
   } catch (error) {
+    console.error('SignUp error:', error);
     return { data: null, error: error as AuthError };
   }
 }
@@ -50,9 +70,70 @@ export async function signIn(email: string, password: string) {
     });
 
     if (error) throw error;
+
+    // Verify user data exists
+    if (data.user) {
+      const { data: userData, error: userError } = await supabase
+        .from('users_table')
+        .select(`
+          *,
+          user_stats (*)
+        `)
+        .eq('id', data.user.id)
+        .single();
+
+      if (userError || !userData) {
+        // Handle missing data by creating it
+        await createMissingUserData(data.user.id, email);
+      }
+    }
+
     return { data, error: null };
   } catch (error) {
+    console.error('SignIn error:', error);
     return { data: null, error: error as AuthError };
+  }
+}
+
+async function createMissingUserData(userId: string, email: string) {
+  try {
+    // Check and create users_table record if missing
+    const { data: existingUser } = await supabase
+      .from('users_table')
+      .select()
+      .eq('id', userId)
+      .single();
+
+    if (!existingUser) {
+      await supabase
+        .from('users_table')
+        .insert({
+          id: userId,
+          email: email,
+          created_at: new Date().toISOString(),
+        });
+    }
+
+    // Check and create user_stats record if missing
+    const { data: existingStats } = await supabase
+      .from('user_stats')
+      .select()
+      .eq('user_id', userId)
+      .single();
+
+    if (!existingStats) {
+      await supabase
+        .from('user_stats')
+        .insert({
+          user_id: userId,
+          problems_solved: 0,
+          achievement_points: 0,
+          last_updated: new Date().toISOString(),
+        });
+    }
+  } catch (error) {
+    console.error('Error creating missing user data:', error);
+    throw error;
   }
 }
 
@@ -102,13 +183,35 @@ export async function getProfile(): Promise<{ data: Profile | null; error: AuthE
 
     const { data, error } = await supabase
       .from('users_table')
-      .select('*')
+      .select(`
+        *,
+        user_stats (*)
+      `)
       .eq('id', session.user.id)
       .single();
 
     if (error) throw error;
+
+    // If data exists but is incomplete, create missing data
+    if (!data || !data.user_stats) {
+      await createMissingUserData(session.user.id, session.user.email!);
+      // Fetch again after creating missing data
+      const { data: refreshedData, error: refreshError } = await supabase
+        .from('users_table')
+        .select(`
+          *,
+          user_stats (*)
+        `)
+        .eq('id', session.user.id)
+        .single();
+
+      if (refreshError) throw refreshError;
+      return { data: refreshedData, error: null };
+    }
+
     return { data, error: null };
   } catch (error) {
+    console.error('GetProfile error:', error);
     return { data: null, error: error as AuthError };
   }
 }
@@ -124,9 +227,26 @@ export async function getUserStats(): Promise<{ data: UserStats | null; error: A
       .eq('user_id', session.user.id)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // If stats don't exist, create them
+      if (error.code === 'PGRST116') {
+        await createMissingUserData(session.user.id, session.user.email!);
+        // Fetch again after creating
+        const { data: refreshedData, error: refreshError } = await supabase
+          .from('user_stats')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (refreshError) throw refreshError;
+        return { data: refreshedData, error: null };
+      }
+      throw error;
+    }
+
     return { data, error: null };
   } catch (error) {
+    console.error('GetUserStats error:', error);
     return { data: null, error: error as AuthError };
   }
 }
@@ -146,6 +266,7 @@ export async function updateProfile(profile: Partial<Profile>) {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
+    console.error('UpdateProfile error:', error);
     return { data: null, error: error as AuthError };
   }
 }
