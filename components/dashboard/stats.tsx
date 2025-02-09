@@ -6,25 +6,40 @@ import { Code, Star, Trophy } from "lucide-react";
 import { getDashboardStats } from '@/lib/supabase/dashboard';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { PostgrestError } from '@supabase/supabase-js';
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function DashboardStats() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [session, setSession] = useState<any>(null);
   const supabase = createClientComponentClient();
 
+  // Handle session
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  // Load stats when session is available
   useEffect(() => {
     async function loadStats() {
-      try {
-        // Get the current session
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session?.user) {
-          setError("No session found");
-          setLoading(false);
-          return;
-        }
+      if (!session?.user) {
+        setError("Please sign in to view your stats");
+        setLoading(false);
+        return;
+      }
 
+      try {
         const { data, error: statsError } = await getDashboardStats(session.user.id);
         
         if (statsError) {
@@ -41,8 +56,10 @@ export function DashboardStats() {
       }
     }
 
-    loadStats();
-  }, []);
+    if (session) {
+      loadStats();
+    }
+  }, [session]);
 
   if (loading) {
     return (
@@ -63,6 +80,15 @@ export function DashboardStats() {
     );
   }
 
+  if (error) {
+    return (
+      <Card className="p-6 bg-black/20 backdrop-blur-xl border border-white/10">
+        <h2 className="text-xl font-bold mb-4">Your Stats</h2>
+        <p className="text-red-400">{error}</p>
+      </Card>
+    );
+  }
+
   const statItems = [
     { label: "Problems Solved", value: stats?.problems_solved || "0", icon: Code },
     { label: "Current Streak", value: `${stats?.current_streak || "0"} days`, icon: Star },
@@ -72,23 +98,19 @@ export function DashboardStats() {
   return (
     <Card className="p-6 bg-black/20 backdrop-blur-xl border border-white/10">
       <h2 className="text-xl font-bold mb-4">Your Stats</h2>
-      {error ? (
-        <p className="text-red-400">Error loading stats: {error}</p>
-      ) : (
-        <div className="grid gap-4">
-          {statItems.map((stat, index) => (
-            <div key={index} className="flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-cyan-500/10">
-                <stat.icon className="w-5 h-5 text-cyan-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">{stat.label}</p>
-                <p className="text-lg font-bold">{stat.value}</p>
-              </div>
+      <div className="grid gap-4">
+        {statItems.map((stat, index) => (
+          <div key={index} className="flex items-center gap-4">
+            <div className="p-2 rounded-lg bg-cyan-500/10">
+              <stat.icon className="w-5 h-5 text-cyan-400" />
             </div>
-          ))}
-        </div>
-      )}
+            <div>
+              <p className="text-sm text-gray-400">{stat.label}</p>
+              <p className="text-lg font-bold">{stat.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }

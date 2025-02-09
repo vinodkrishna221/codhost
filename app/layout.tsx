@@ -10,7 +10,7 @@ import { BackButton } from '@/components/ui/back-button';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'CodeVault - Programming Challenges Repository',
+  title: 'Codost - Programming Challenges Repository',
   description: 'Explore and learn from a curated collection of coding problems and challenges',
 };
 

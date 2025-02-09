@@ -3,7 +3,7 @@ import { AuthError, Profile, UserStats } from './types';
 
 const supabase = createClientComponentClient();
 
-export async function signUp(email: string, password: string, username: string) {
+export async function signUp(email: string, password: string) {
   try {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -22,7 +22,6 @@ export async function signUp(email: string, password: string, username: string) 
         .insert({
           id: authData.user.id,
           email: authData.user.email,
-          username,
         });
 
       if (profileError) throw profileError;
@@ -48,6 +47,19 @@ export async function signIn(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
+    });
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error as AuthError };
+  }
+}
+
+export async function resetPassword(email: string) {
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
     });
 
     if (error) throw error;

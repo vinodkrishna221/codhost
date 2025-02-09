@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ChevronLeft, Menu } from "lucide-react";
+import { ChevronLeft, Menu, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -65,7 +65,7 @@ export function Navigation() {
           </Sheet>
           <Link href="/" className="flex items-center">
             <span className="font-bold text-lg sm:text-xl bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-600">
-              CodeMaster
+              Codost
             </span>
           </Link>
           {showBackButton && (
@@ -115,9 +115,11 @@ export function Navigation() {
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback>{session.user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
