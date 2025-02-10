@@ -5,7 +5,6 @@ const supabase = createClientComponentClient();
 
 export async function signUp(email: string, password: string) {
   try {
-    // 1. Create auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -17,9 +16,9 @@ export async function signUp(email: string, password: string) {
     if (authError) throw authError;
 
     if (authData.user) {
-      // 2. Create user profile in users_table
+      // Create profile
       const { error: profileError } = await supabase
-        .from('users_table')
+        .from('profiles')
         .insert([{
           id: authData.user.id,
           email: authData.user.email,
@@ -28,11 +27,11 @@ export async function signUp(email: string, password: string) {
 
       if (profileError) throw profileError;
 
-      // 3. Initialize user stats - FIXED: Added explicit id field
+      // Create user stats
       const { error: statsError } = await supabase
         .from('user_stats')
         .insert([{
-          id: authData.user.id, // Add this line
+          id: authData.user.id,
           user_id: authData.user.id,
           problems_solved: 0,
           achievement_points: 0,
@@ -41,10 +40,7 @@ export async function signUp(email: string, password: string) {
           updated_at: new Date().toISOString(),
         }]);
 
-      if (statsError) {
-        console.error('Stats creation error:', statsError);
-        throw statsError;
-      }
+      if (statsError) throw statsError;
 
       return { data: authData, error: null };
     }
@@ -65,19 +61,14 @@ export async function signIn(email: string, password: string) {
 
     if (error) throw error;
 
-    // Verify user data exists
     if (data.user) {
-      const { data: userData, error: userError } = await supabase
-        .from('users_table')
-        .select(`
-          *,
-          user_stats (*)
-        `)
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*, user_stats(*)')
         .eq('id', data.user.id)
         .single();
 
-      if (userError || !userData) {
-        // Handle missing data by creating it
+      if (profileError || !profile) {
         await createMissingUserData(data.user.id, email);
       }
     }
@@ -91,26 +82,26 @@ export async function signIn(email: string, password: string) {
 
 async function createMissingUserData(userId: string, email: string) {
   try {
-    // Check and create users_table record if missing
-    const { data: existingUser } = await supabase
-      .from('users_table')
+    // Check and create profile if missing
+    const { data: existingProfile } = await supabase
+      .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
 
-    if (!existingUser) {
-      const { error: userError } = await supabase
-        .from('users_table')
+    if (!existingProfile) {
+      const { error: profileError } = await supabase
+        .from('profiles')
         .insert([{
           id: userId,
           email: email,
           created_at: new Date().toISOString(),
         }]);
-
-      if (userError) throw userError;
+      
+      if (profileError) throw profileError;
     }
 
-    // Check and create user_stats record if missing
+    // Check and create user stats if missing
     const { data: existingStats } = await supabase
       .from('user_stats')
       .select('*')
@@ -121,7 +112,7 @@ async function createMissingUserData(userId: string, email: string) {
       const { error: statsError } = await supabase
         .from('user_stats')
         .insert([{
-          id: userId, // Add this line
+          id: userId,
           user_id: userId,
           problems_solved: 0,
           achievement_points: 0,
@@ -129,28 +120,11 @@ async function createMissingUserData(userId: string, email: string) {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }]);
-
-      if (statsError) {
-        console.error('Stats creation error:', statsError);
-        throw statsError;
-      }
+      
+      if (statsError) throw statsError;
     }
 
-    // Verify data creation
-    const { data: verifyData, error: verifyError } = await supabase
-      .from('users_table')
-      .select(`
-        *,
-        user_stats (*)
-      `)
-      .eq('id', userId)
-      .single();
-
-    if (verifyError || !verifyData) {
-      throw new Error('Failed to verify user data creation');
-    }
-
-    return verifyData;
+    return true;
   } catch (error) {
     console.error('Error creating missing user data:', error);
     throw error;
@@ -202,26 +176,18 @@ export async function getProfile(): Promise<{ data: Profile | null; error: AuthE
     if (!session) return { data: null, error: null };
 
     const { data, error } = await supabase
-      .from('users_table')
-      .select(`
-        *,
-        user_stats (*)
-      `)
+      .from('profiles')
+      .select('*, user_stats(*)')
       .eq('id', session.user.id)
       .single();
 
     if (error) throw error;
 
-    // If data exists but is incomplete, create missing data
-    if (!data || !data.user_stats) {
+    if (!data) {
       await createMissingUserData(session.user.id, session.user.email!);
-      // Fetch again after creating missing data
       const { data: refreshedData, error: refreshError } = await supabase
-        .from('users_table')
-        .select(`
-          *,
-          user_stats (*)
-        `)
+        .from('profiles')
+        .select('*, user_stats(*)')
         .eq('id', session.user.id)
         .single();
 
@@ -277,7 +243,7 @@ export async function updateProfile(profile: Partial<Profile>) {
     if (!session) throw new Error('No session');
 
     const { data, error } = await supabase
-      .from('users_table')
+      .from('profiles')
       .update(profile)
       .eq('id', session.user.id)
       .select()
