@@ -256,3 +256,9 @@ export async function updateProfile(profile: Partial<Profile>) {
     return { data: null, error: error as AuthError };
   }
 }
+
+export { signOut }
+
+export { signIn, signUp, resetPassword }
+
+export { signInWithProvider }
