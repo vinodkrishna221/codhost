@@ -257,8 +257,4 @@ export async function updateProfile(profile: Partial<Profile>) {
   }
 }
 
-export { signOut }
-
-export { signIn, signUp, resetPassword }
-
-export { signInWithProvider }
+export { signIn, signUp, resetPassword, signOut, signInWithProvider };
