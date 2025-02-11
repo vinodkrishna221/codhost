@@ -3,7 +3,7 @@ import { AuthError, Profile, UserStats } from './types';
 
 const supabase = createClientComponentClient();
 
-export async function signUp(email: string, password: string) {
+async function signUp(email: string, password: string) {
   try {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -52,7 +52,7 @@ export async function signUp(email: string, password: string) {
   }
 }
 
-export async function signIn(email: string, password: string) {
+async function signIn(email: string, password: string) {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -131,7 +131,7 @@ async function createMissingUserData(userId: string, email: string) {
   }
 }
 
-export async function resetPassword(email: string) {
+async function resetPassword(email: string) {
   try {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
@@ -144,7 +144,7 @@ export async function resetPassword(email: string) {
   }
 }
 
-export async function signInWithProvider(provider: 'google' | 'github') {
+async function signInWithProvider(provider: 'google' | 'github') {
   try {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -160,7 +160,7 @@ export async function signInWithProvider(provider: 'google' | 'github') {
   }
 }
 
-export async function signOut() {
+async function signOut() {
   try {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -170,7 +170,7 @@ export async function signOut() {
   }
 }
 
-export async function getProfile(): Promise<{ data: Profile | null; error: AuthError | null }> {
+async function getProfile(): Promise<{ data: Profile | null; error: AuthError | null }> {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return { data: null, error: null };
@@ -202,7 +202,7 @@ export async function getProfile(): Promise<{ data: Profile | null; error: AuthE
   }
 }
 
-export async function getUserStats(): Promise<{ data: UserStats | null; error: AuthError | null }> {
+async function getUserStats(): Promise<{ data: UserStats | null; error: AuthError | null }> {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return { data: null, error: null };
@@ -237,7 +237,7 @@ export async function getUserStats(): Promise<{ data: UserStats | null; error: A
   }
 }
 
-export async function updateProfile(profile: Partial<Profile>) {
+async function updateProfile(profile: Partial<Profile>) {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error('No session');
@@ -257,4 +257,13 @@ export async function updateProfile(profile: Partial<Profile>) {
   }
 }
 
-export { signIn, signUp, resetPassword, signOut, signInWithProvider };
+export {
+  signIn,
+  signUp,
+  signOut,
+  resetPassword,
+  signInWithProvider,
+  getProfile,
+  getUserStats,
+  updateProfile
+};
