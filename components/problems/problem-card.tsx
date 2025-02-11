@@ -1,26 +1,26 @@
 "use client";
 
+import { Problem } from "@/components/problems/problem-data";
 import { AnimatedCard } from "@/components/problems/animated-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { CompleteButton } from "./complete-button";
 
 interface ProblemCardProps {
-  problem: {
-    id: number | string;
-    title: string;
-    description: string;
-    difficulty: "Easy" | "Medium" | "Hard";
-    category: string[];
-    detailedDescription: string;
-    realWorldApplications: string[];
-    supportedLanguages: string[];
-  };
+  problem: Problem;
   index: number;
+  isCompleted?: boolean;
+  onComplete?: () => void;
 }
 
-export function ProblemCard({ problem, index }: ProblemCardProps) {
+export function ProblemCard({ 
+  problem, 
+  index,
+  isCompleted = false,
+  onComplete 
+}: ProblemCardProps) {
   return (
     <div 
       className="animate-float-up"
@@ -31,17 +31,24 @@ export function ProblemCard({ problem, index }: ProblemCardProps) {
       <AnimatedCard>
         <div className="flex justify-between items-start">
           <h3 className="text-xl font-bold text-white">{problem.title}</h3>
-          <Badge
-            variant={
-              problem.difficulty === "Easy"
-                ? "default"
-                : problem.difficulty === "Medium"
-                ? "secondary"
-                : "destructive"
-            }
-          >
-            {problem.difficulty}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <CompleteButton 
+              problemId={problem.id.toString()}
+              isCompleted={isCompleted}
+              onComplete={onComplete}
+            />
+            <Badge
+              variant={
+                problem.difficulty === "Easy"
+                  ? "default"
+                  : problem.difficulty === "Medium"
+                  ? "secondary"
+                  : "destructive"
+              }
+            >
+              {problem.difficulty}
+            </Badge>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2 mt-2">
           {problem.category && problem.category.map((cat, index) => (
