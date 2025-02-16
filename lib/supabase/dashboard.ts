@@ -55,11 +55,21 @@ export async function getDashboardActivity(userId: string) {
 
 export async function getRecommendedProblems(userId: string) {
   try {
+    // First get the user's completed problems
+    const { data: completedProblems } = await supabase
+      .from('problem_completions')
+      .select('problem_id')
+      .eq('user_id', userId);
+
+    const completedIds = completedProblems?.map(p => p.problem_id) || [];
+
+    // Get problems not completed by the user
     const { data: problems, error } = await supabase
       .from('problems')
       .select('*')
       .eq('is_active', true)
       .eq('visibility', 'public')
+      .not('id', 'in', `(${completedIds.join(',')})`)
       .limit(3);
 
     if (error) throw error;

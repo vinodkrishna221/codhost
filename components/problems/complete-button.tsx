@@ -9,13 +9,17 @@ import { cn } from "@/lib/utils";
 
 interface CompleteButtonProps {
   problemId: string;
+  problemTitle: string;
+  difficulty: string;
   isCompleted?: boolean;
   onComplete?: () => void;
   className?: string;
 }
 
 export function CompleteButton({ 
-  problemId, 
+  problemId,
+  problemTitle,
+  difficulty,
   isCompleted = false,
   onComplete,
   className 
@@ -71,9 +75,9 @@ export function CompleteButton({
           {
             user_id: session.user.id,
             problem_id: problemId,
-            action: 'Completed',
-            problem_title: 'Problem', // You might want to pass this as a prop
-            difficulty: 'Medium', // You might want to pass this as a prop
+            action: 'Solved',
+            problem_title: problemTitle,
+            difficulty: difficulty,
           }
         ]);
 
